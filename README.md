@@ -1,5 +1,8 @@
 ### NEXT.JS 연습 프로젝트 - 웹 마켓 서비스
 
+![Preview-removebg-preview](https://github.com/user-attachments/assets/5a953ee6-6a08-47c6-801a-d9b7256d8f74)
+
+
 ## 1. 소셜로그인 & 일반로그인 및 회원가입
 a. 카카오/네이버/구글/일반
 b. 로그인 세션 만료 시간 - 3h
