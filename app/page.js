@@ -185,7 +185,7 @@ async function updateUserInDB(userInfo,router) {
 
     if (response.ok) {
       signOut({ redirect:false}).then(()=>{
-        Cookies.remove('userInfo');
+        localStorage.removeItem('userInfo');
         router.push('/');
       })
       console.log('User information successfully updated in the database');
@@ -195,7 +195,5 @@ async function updateUserInDB(userInfo,router) {
   } catch (error) {
     console.error('Error during API request:', error);
   }
-
-  return { }
 }
 

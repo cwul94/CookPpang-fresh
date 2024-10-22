@@ -342,7 +342,7 @@ export default function Cart() {
                 <button onClick={allDeleteButton}>전체 삭제</button>
                 <button onClick={selectDeleteButton}>선택 삭제</button>
             </div>
-            { userInfo && userInfo?.cart.length > 0 ? (
+            { userInfo && userInfo?.cart?.length > 0 ? (
                 <>
                     <div className="cart-info">
                         <div></div>
@@ -377,7 +377,7 @@ export default function Cart() {
                 </>
             )}
             <div className="cart-decide">
-                {userInfo && userInfo?.cart.length > 0 && (
+                {userInfo && userInfo?.cart?.length > 0 && (
                     <>
                         <p>Total</p>
                         <p>$</p>

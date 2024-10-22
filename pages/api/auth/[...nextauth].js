@@ -1,3 +1,5 @@
+"use server"
+
 import { getDatabaseConnection } from "@/lib/db";
 import { addAccessSecretToEnv, addRefreshSecretToEnv } from "@/lib/generateSecret";
 import NextAuth from "next-auth";
@@ -8,7 +10,6 @@ import NaverProvider from "next-auth/providers/naver";
 import bcrypt from "bcrypt";
 import client from "@/lib/redisClient";
 import jwt from "jsonwebtoken";
-
 
 export default NextAuth({
   debug: true,

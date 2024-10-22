@@ -1,3 +1,5 @@
+"use client"
+
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
@@ -87,9 +89,10 @@ export function MyProvider({ children }) {
     // 세션 로딩 중에는 리다이렉트하지 않음
     if (status === 'loading') return;
     if (status === 'unauthenticated') {
-      const infoCookie = Cookies.get('userInfo');
-      if(infoCookie) {
-        updateUserInDB(JSON.parse(infoCookie),router);
+      // const infoCookie = Cookies.get('userInfo');
+      const infoStorage = localStorage.getItem('userInfo');
+      if(infoStorage) {
+        updateUserInDB(userInfo,router);
       }
       return;
     }
@@ -102,16 +105,42 @@ export function MyProvider({ children }) {
     }
   
     // 쿠키에서 사용자 정보를 가져오고, 쿠키가 있는 경우 세션 사용자 정보를 업데이트
-    const infoCookie = Cookies.get('userInfo');
-  
+    // const infoCookie = Cookies.get('userInfo');
+    
+    const infoStorage = localStorage.getItem('userInfo');
+
     // 쿠키에서 정보 가져오기: JSON 파싱이 필요함
-    if (status === 'authenticated' && session?.userData && infoCookie) {
+    if (status === 'authenticated' && session?.userData && infoStorage) {
+      console.log('이미 로그인됨');
+      const infoStorage = JSON.parse(localStorage.getItem('userInfo'));
+      console.log(localStorage.getItem('userInfo'));
+      if (infoStorage) {
+        // console.log('쿠키에서 사용자 정보 로드');
+        // console.log(infoCookie);
+        console.log(userInfo);
+        setUserInfo( prevInfo => ({
+          userInfo: session?.userData.userInfo,
+          cart: infoStorage?.cart,
+          jjim: infoStorage?.jjim,
+          order: session?.userData.order,
+        }))
+      }
       return;
     }
+
+    function omit(obj, ...keys) {
+      const result = { ...obj }
+      keys.forEach(key => delete result[key])
+      return result
+    }
+
+    const filteredInfo = omit(session?.userData, 'order', 'userInfo');
     
-    const parsedUserData = JSON.stringify(session.userData);
-    Cookies.set('userInfo', parsedUserData);  // 쿠키에 사용자 정보 저장
-    setUserInfo(session.userData); // 상태에 사용자 정보 저장
+    const parsedUserData = JSON.stringify(filteredInfo);
+    // Cookies.set('userInfo', parsedUserData);  // 쿠키에 사용자 정보 저장
+    localStorage.setItem('userInfo', parsedUserData);
+    setUserInfo(session?.userData); // 상태에 사용자 정보 저장
+    console.log(session?.userData);
     // console.log(session);
     // console.log(status);
   }, [status]);
@@ -119,24 +148,32 @@ export function MyProvider({ children }) {
   useEffect(() => {
     // userInfo 상태가 업데이트될 때마다 쿠키에 저장
     // console.log(userInfo)
-    const infoCookie = Cookies.get('userInfo');
+    // const infoCookie = Cookies.get('userInfo');
+    const infoStorage = localStorage.getItem('userInfo');
     if (userInfo) {
-      Cookies.set('userInfo', JSON.stringify(userInfo));
-      // console.log('쿠키 등록함~');
-      // console.log(infoCookie);
+
+      console.log(userInfo);
+
+      function omit(obj, ...keys) {
+        const result = { ...obj }
+        keys.forEach(key => delete result[key])
+        return result
+      }
+  
+      const filteredInfo = omit(userInfo, 'order', 'userInfo');
+
+      // Cookies.set('userInfo', JSON.stringify(userInfo));
+      localStorage.setItem('userInfo', JSON.stringify(filteredInfo));
+      console.log('쿠키 등록함~');
+      console.log(userInfo);
+      console.log(infoStorage);
     }
     // console.log(session);
     // console.log(status);
   }, [userInfo]);
   
   useEffect(() => {
-    const infoCookie = Cookies.get('userInfo');
-    if (infoCookie) {
-      // console.log('쿠키에서 사용자 정보 로드');
-      // console.log(infoCookie);
-      setUserInfo(JSON.parse(infoCookie)); // 쿠키에서 정보를 파싱하여 상태에 설정
-    }
-    // console.log(Cookies.get('userInfo'));
+    console.log(userInfo);
   }, [])
 
   useEffect(() => {
@@ -197,7 +234,8 @@ async function updateUserInDB(userInfo,router) {
     if (response.ok) {
       console.log('User information successfully updated in the database');
       signOut({ redirect:false }).then(()=>{
-        Cookies.remove('userInfo'); // 로그아웃 시 쿠키 삭제
+        // Cookies.remove('userInfo'); // 로그아웃 시 쿠키 삭제
+        localStorage.removeItem('userInfo');
         router.push('/');
       })
     } else {

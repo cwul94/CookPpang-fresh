@@ -260,7 +260,7 @@ async function updateUserInDB(userInfo,router) {
     if (response.ok) {
       signOut({ redirect: false })
       .then(() => {
-        Cookies.remove('userInfo'); // 로그아웃 시 쿠키 삭제
+        localStorage.removeItem('userInfo');
         router.push('/'); // 홈으로 강제로 리다이렉트
       });
       console.log('User information successfully updated in the database');
