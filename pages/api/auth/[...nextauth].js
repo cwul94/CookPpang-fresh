@@ -74,8 +74,7 @@ export default NextAuth({
   },
   session: {
     strategy: "jwt", // 세션 전략은 JWT로 설정
-    maxAge: 7 * 24 * 60 * 60, // 기본적으로 세션은 7일간 유지
-    updateAge: 24 * 60 * 60, // 24시간 후에는 자동으로 세션 갱신
+    maxAge: 3 * 60 * 60, // 기본적으로 세션은 7일간 유지
   },
   // jwt: {
   //   secret: process.env.NEXTAUTH_SECRET, // JWT 비밀 키
