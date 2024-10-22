@@ -1,7 +1,5 @@
 ### NEXT.JS 연습 프로젝트 - 웹 마켓 서비스
-
-![Preview-removebg-preview](https://github.com/user-attachments/assets/5a953ee6-6a08-47c6-801a-d9b7256d8f74)
-
+![Preview](https://github.com/user-attachments/assets/be165287-9bf1-4626-9f0d-90d3e1a21956)
 
 ## 1. 소셜로그인 & 일반로그인 및 회원가입
 a. 카카오/네이버/구글/일반
