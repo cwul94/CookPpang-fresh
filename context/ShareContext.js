@@ -118,12 +118,27 @@ export function MyProvider({ children }) {
         // console.log('쿠키에서 사용자 정보 로드');
         // console.log(infoCookie);
         console.log(userInfo);
-        setUserInfo( prevInfo => ({
+        setUserInfo({
           userInfo: session?.userData.userInfo,
           cart: infoStorage?.cart,
           jjim: infoStorage?.jjim,
           order: session?.userData.order,
-        }))
+        })
+
+        const addressStorage = localStorage.getItem('address');
+        const detailsStorage = localStorage.getItem('address_details');
+        if ( addressStorage ) {
+          console.log(addressStorage);
+          console.log(detailsStorage);
+          setUserInfo( prevInfo => ({
+            ...prevInfo,
+            userInfo: {
+              ...prevInfo.userInfo,
+              address: addressStorage,
+              address_detail: detailsStorage,
+            }
+          }))
+        }
       }
       return;
     }

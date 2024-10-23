@@ -1117,6 +1117,7 @@ input:focus {
 }
 .user-pwd > div:nth-child(1) {
   margin-right: 80px;
+  position: relative;
 }
 .user-pwd > div:nth-child(1) > button {
   width: 30px;
@@ -1128,12 +1129,13 @@ input:focus {
   background-color: white;
   color: black;
   position: absolute;
-  right: 630px;
+  right: 260px;
   cursor: pointer;
 }
 
 .user-pwd > div:nth-child(2) {
   margin-right: 66px;
+  position: relative;
 }
 .user-pwd > div:nth-child(2) > button {
   width: 30px;
@@ -1145,7 +1147,7 @@ input:focus {
   background-color: white;
   color: black;
   position: absolute;
-  right: 630px;
+  right: 274px;
   cursor: pointer;
 }
 .user-pwd div > button {

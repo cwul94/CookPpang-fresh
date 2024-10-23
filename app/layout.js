@@ -384,27 +384,39 @@ function AddressSearch({ setIsModal, setIsModalVisible, setMessage }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch("/api/save-address", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: userInfo?.userInfo?.email, address, details }),
-    });
+    // const response = await fetch("/api/save-address", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ email: userInfo?.userInfo?.email, address, details }),
+    // });
 
-    const data = await response.json();
+    // const data = await response.json();
 
-    if (response.ok) {
-      setUserInfo((prevInfo) => ({
-        ...prevInfo,
-        userInfo: {
-          ...prevInfo.userInfo,
-          address,
-          address_detail: details,
-        }
-      }));
-      setMessage(data.message);
-    } else {
-      setMessage(data.error);
-    }
+    // if (response.ok) {
+    //   setUserInfo((prevInfo) => ({
+    //     ...prevInfo,
+    //     userInfo: {
+    //       ...prevInfo.userInfo,
+    //       address,
+    //       address_detail: details,
+    //     }
+    //   }));
+    //   setMessage(data.message);
+    // } else {
+    //   setMessage(data.error);
+    // }
+
+    setUserInfo((prevInfo) => ({
+      ...prevInfo,
+      userInfo: {
+        ...prevInfo.userInfo,
+        address,
+        address_detail: details,
+      }
+    }));
+    localStorage.setItem('address', address);
+    localStorage.setItem('address_details', details);
+    setMessage('주소가 저장되었습니다.');
     setIsOpen(false);
     setIsSelected(false);
     setIsModal(true);

@@ -67,6 +67,13 @@ export default function List() {
     }, [isModal])
 
     const putCartHandler = (product,quantity) => {
+
+        if (status !== 'authenticated') {
+            alert('로그인이 필요합니다.');
+            setMainCategoryNum(0);
+            router.push('/');
+            return;
+        }
         if (userInfo) {
             const isExisting = userInfo?.cart.find(item => item.cart_name === product.name);
             if (isExisting) {
@@ -100,6 +107,14 @@ export default function List() {
     };
 
     const putJjimHandler = (product) => {
+
+        if (status !== 'authenticated') {
+            alert('로그인이 필요합니다.');
+            setMainCategoryNum(0);
+            router.push('/');
+            return;
+        }
+        
         const updated상품 = 상품.map(item =>
             item.name === product.name
                 ? { ...item, isActive: !item.isActive }
@@ -183,25 +198,21 @@ export default function List() {
             <div className="product-list">
                 { filteredProducts.map((product, i) => (
                     <div className="food" key={i}>
-                        {status === 'authenticated' && 
-                            ( 
-                            <div className="saved-status">
-                                <div className="heartCheckbox">
-                                    <input
-                                        type="checkbox"
-                                        id={`heart-${i}`}
-                                        className="checkbox"
-                                        onChange={() => putJjimHandler(product)}
-                                        checked={product.isActive}
-                                        />
-                                    <label htmlFor={`heart-${i}`} className="heart"></label>
-                                </div>
-                                {   
-                                    product.isCarted && <BsFillCartCheckFill onClick={gotoCartHandler} style={{cursor:"pointer"}} color="cornflowerblue" size='22px'/>
-                                }
+                        <div className="saved-status">
+                            <div className="heartCheckbox">
+                                <input
+                                    type="checkbox"
+                                    id={`heart-${i}`}
+                                    className="checkbox"
+                                    onChange={() => putJjimHandler(product)}
+                                    checked={product.isActive}
+                                    />
+                                <label htmlFor={`heart-${i}`} className="heart"></label>
                             </div>
-                            )
-                        }
+                            {   
+                                product.isCarted && <BsFillCartCheckFill onClick={gotoCartHandler} style={{cursor:"pointer"}} color="cornflowerblue" size='22px'/>
+                            }
+                        </div>
                         <Image
                             className="product-img"
                             src={product.img}
@@ -214,24 +225,21 @@ export default function List() {
                             <h4>{product.name}</h4>
                             <h4>${product.price}</h4>
                         </div>
-                        { status === 'authenticated' && 
-                            (
-                                <div className="put-btn">
-                                    <p>수량</p>
-                                    <input
-                                        type="number"
-                                        id={`quantity${i}`}
-                                        min="1"
-                                        max="99"
-                                        defaultValue="1"
-                                    />
-                                    <button onClick={() => {
-                                        const quantity = parseInt(document.getElementById(`quantity${i}`).value, 10);
-                                        putCartHandler(product, quantity);
-                                    }}>담기</button>
-                                </div>
-                            )
-                        }
+                        <div className="put-btn">
+                            <p>수량</p>
+                            <input
+                                type="number"
+                                id={`quantity${i}`}
+                                min="1"
+                                max="99"
+                                defaultValue="1"
+                            />
+                            <button onClick={() => {
+                                const quantity = parseInt(document.getElementById(`quantity${i}`).value, 10);
+                                putCartHandler(product, quantity);
+                            }}>담기</button>
+                        </div>
+                    
                     </div>
                 ))}
             </div>

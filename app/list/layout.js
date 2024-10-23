@@ -8,22 +8,22 @@ export default function ListLayout({ children }) {
 
     const { listCategoryNum, setListCategoryNum } = useShareContext();
 
-  // 클라이언트에서만 로컬 스토리지 접근
-  useEffect(() => {
-    const storedSelection = parseInt(localStorage.getItem('listCategoryNum'));
-    // 로컬 스토리지에 값이 있을 경우에만 설정, 없을 경우 0으로 초기화
-    if (!isNaN(storedSelection)) {
-        setListCategoryNum(storedSelection);
-    } else {
-        setListCategoryNum(0);
-    }
-  }, []);
+//   // 클라이언트에서만 로컬 스토리지 접근
+//   useEffect(() => {
+//     const storedSelection = parseInt(localStorage.getItem('listCategoryNum'));
+//     // 로컬 스토리지에 값이 있을 경우에만 설정, 없을 경우 0으로 초기화
+//     if (!isNaN(storedSelection)) {
+//         setListCategoryNum(storedSelection);
+//     } else {
+//         setListCategoryNum(0);
+//     }
+//   }, []);
 
-  useEffect(() => {
-    if (listCategoryNum !== null) {
-      localStorage.setItem('listCategoryNum', listCategoryNum);
-    }
-  }, [listCategoryNum]);
+//   useEffect(() => {
+//     if (listCategoryNum !== null) {
+//       localStorage.setItem('listCategoryNum', listCategoryNum);
+//     }
+//   }, [listCategoryNum]);
 
   return (
     <div>
