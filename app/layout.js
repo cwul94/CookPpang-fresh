@@ -261,6 +261,8 @@ async function updateUserInDB(userInfo,router) {
       signOut({ redirect: false })
       .then(() => {
         localStorage.removeItem('userInfo');
+        localStorage.removeItem('address');
+        localStorage.removeItem('address_details');
         router.push('/'); // 홈으로 강제로 리다이렉트
       });
       console.log('User information successfully updated in the database');

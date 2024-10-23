@@ -32,6 +32,9 @@ export default function Home() {
 
     if (res?.error) {
       alert(res.error);
+
+      const password = document.getElementById('password');
+      password.focus();
     } else {
       // 로그인 성공 시 처리
       window.location.href = '/'; // 로그인 성공 후 리다이렉트
@@ -186,6 +189,8 @@ async function updateUserInDB(userInfo,router) {
     if (response.ok) {
       signOut({ redirect:false}).then(()=>{
         localStorage.removeItem('userInfo');
+        localStorage.removeItem('address');
+        localStorage.removeItem('address_details');
         router.push('/');
       })
       console.log('User information successfully updated in the database');
