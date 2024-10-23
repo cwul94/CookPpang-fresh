@@ -31,10 +31,11 @@ export default function Home() {
     });
 
     if (res?.error) {
+      if ( res?.error === '비밀번호를 확인해주세요.') {
+        const password = document.getElementById('password');
+        password.focus();
+      }
       alert(res.error);
-
-      const password = document.getElementById('password');
-      password.focus();
     } else {
       // 로그인 성공 시 처리
       window.location.href = '/'; // 로그인 성공 후 리다이렉트

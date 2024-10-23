@@ -114,7 +114,7 @@ export default function List() {
             router.push('/');
             return;
         }
-        
+
         const updated상품 = 상품.map(item =>
             item.name === product.name
                 ? { ...item, isActive: !item.isActive }
@@ -246,10 +246,14 @@ export default function List() {
 
             {isModalVisible && (
               <div className={`modal ${isModal ? 'show' : ''}`} onKeyPress={keyPressHandler}>
-                  <div className="modal-content" ref={modalRef}>
-                      <h4>{message}</h4>
-                      <button ref={yesButtonRef} onClick={()=>setIsModal(false)}>확인</button>
-                  </div>
+                <div className="modal-content" ref={modalRef}>
+                <h4>{message}</h4>
+                {
+                    message !== '찜 목록에 추가되었습니다!' &&
+                    message !== '찜 목록에서 삭제되었습니다.' &&  
+                    <button ref={yesButtonRef} onClick={()=>setIsModal(false)}>확인</button>
+                }
+                </div>
               </div>
             )}
         </div>
