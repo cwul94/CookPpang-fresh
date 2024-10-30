@@ -178,7 +178,7 @@ function Navbar({ setIsModal, setIsModalVisible, setMessage, setIsVisible }) {
   const logoutHandler = () => {
     setMainCategoryNum(0);
     setUserInfo(null);
-    updateUserInDB(userInfo,router);
+    updateUserInDB(session,userInfo,router);
   };
 
   return (
@@ -204,7 +204,7 @@ function Navbar({ setIsModal, setIsModalVisible, setMessage, setIsVisible }) {
         <Link href="/list" onClick={() => setMainCategoryNum(1)} style={mainCategoryNum == 1 ? { color: "cornflowerblue" } : { color: "black" }}>
           쇼핑
         </Link>
-        { userInfo && (
+        { status == 'authenticated' && userInfo !== null && (
           <>
             <Link href="/cart" onClick={() => setMainCategoryNum(2)} style={mainCategoryNum == 2 ? { color: "cornflowerblue" } : { color: "black" }}>
               장바구니{userInfo?.cart?.length > 0 ? ` (${userInfo?.cart.length})` : ""}
@@ -221,7 +221,7 @@ function Navbar({ setIsModal, setIsModalVisible, setMessage, setIsVisible }) {
           커뮤니티
         </Link> */}
         <div>
-          { userInfo && (
+          { status == 'authenticated' && (
             <>
               <AddressSearch setIsModal={setIsModal} setIsModalVisible={setIsModalVisible} setMessage={setMessage}/>
             </>
@@ -240,7 +240,7 @@ function Navbar({ setIsModal, setIsModalVisible, setMessage, setIsVisible }) {
   );
 }
 
-async function updateUserInDB(userInfo,router) {
+async function updateUserInDB(session,userInfo,router) {
   try {
     const response = await fetch('/api/update-info', {
       method: 'POST',
@@ -248,12 +248,14 @@ async function updateUserInDB(userInfo,router) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id: userInfo?.userInfo?.username,
-        email: userInfo?.userInfo?.email,
+        id: session?.userData?.userInfo?.username,
+        email: session?.userData?.userInfo?.email,
         address: userInfo?.userInfo?.address,
         details: userInfo?.userInfo?.address_detail,
-        cart: userInfo?.cart,
-        interest: userInfo?.jjim,
+        loginform: session?.provider,
+        loginformId: session?.user?.id,
+        cart: session?.userData?.cart,
+        interest: session?.userData?.jjim,
       }),
     });
 

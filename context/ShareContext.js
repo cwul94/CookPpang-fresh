@@ -1,9 +1,9 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { IoEyeSharp, IoEyeOffSharp } from "react-icons/io5";
 import { signOut, useSession } from "next-auth/react";
-import Cookies from "js-cookie";
 
 // Create the context
 export const ShareContext = createContext();
@@ -18,6 +18,20 @@ export function MyProvider({ children }) {
   const [previousPath, setPreviousPath] = useState("");
   const [isRedirectedToJoin, setIsRedirectedToJoin] = useState(false);
   const [isCnction, setIsCnction] = useState(false);
+  const [isModal, setIsModal] = useState(false);
+  const [isConfirm, setIsConfirm] = useState(false);
+  const [message, setMessage] = useState('');
+  const [visibility, setVisibility] = useState(false);
+  const [email, setEmail] = useState(null);
+  const [password, setPassword] = useState(null);
+
+  const toggleVisibility = () => {
+    setVisibility(!visibility);
+  }
+
+  const modalRef = useRef(null);
+  const yesButtonRef = useRef(null);
+  
   const router = useRouter();
   const pathname = usePathname();
 
@@ -92,7 +106,7 @@ export function MyProvider({ children }) {
       // const infoCookie = Cookies.get('userInfo');
       const infoStorage = localStorage.getItem('userInfo');
       if(infoStorage) {
-        updateUserInDB(userInfo,router);
+        updateUserInDB(session?.userData,userInfo,router);
       }
       return;
     }
@@ -102,6 +116,25 @@ export function MyProvider({ children }) {
       // console.log(session);
       router.push('/join');
       return;
+    }
+
+    // 중복된 이메일로 로그인 시도시 연동 절차
+    if (status === 'authenticated' && session?.userData?.dupStatus ) {
+      setIsModal(!isModal);
+      setMessage('동일한 이메일이 사용되고 있습니다. \n계정을 연동하시겠습니까?');
+    } else {
+      function omit(obj, ...keys) {
+        const result = { ...obj }
+        keys.forEach(key => delete result[key])
+        return result
+      }
+  
+      const filteredInfo = omit(session?.userData, 'order', 'userInfo');
+      
+      const parsedUserData = JSON.stringify(filteredInfo);
+      // Cookies.set('userInfo', parsedUserData);  // 쿠키에 사용자 정보 저장
+      localStorage.setItem('userInfo', parsedUserData);
+      setUserInfo(session?.userData); // 상태에 사용자 정보 저장
     }
   
     // 쿠키에서 사용자 정보를 가져오고, 쿠키가 있는 경우 세션 사용자 정보를 업데이트
@@ -113,11 +146,11 @@ export function MyProvider({ children }) {
     if (status === 'authenticated' && session?.userData && infoStorage) {
       console.log('이미 로그인됨');
       const infoStorage = JSON.parse(localStorage.getItem('userInfo'));
-      console.log(localStorage.getItem('userInfo'));
+      // console.log(localStorage.getItem('userInfo'));
       if (infoStorage) {
         // console.log('쿠키에서 사용자 정보 로드');
         // console.log(infoCookie);
-        console.log(userInfo);
+        // console.log(userInfo);
         setUserInfo({
           userInfo: session?.userData.userInfo,
           cart: infoStorage?.cart,
@@ -128,8 +161,8 @@ export function MyProvider({ children }) {
         const addressStorage = localStorage.getItem('address');
         const detailsStorage = localStorage.getItem('address_details');
         if ( addressStorage ) {
-          console.log(addressStorage);
-          console.log(detailsStorage);
+          // console.log(addressStorage);
+          // console.log(detailsStorage);
           setUserInfo( prevInfo => ({
             ...prevInfo,
             userInfo: {
@@ -142,20 +175,7 @@ export function MyProvider({ children }) {
       }
       return;
     }
-
-    function omit(obj, ...keys) {
-      const result = { ...obj }
-      keys.forEach(key => delete result[key])
-      return result
-    }
-
-    const filteredInfo = omit(session?.userData, 'order', 'userInfo');
-    
-    const parsedUserData = JSON.stringify(filteredInfo);
-    // Cookies.set('userInfo', parsedUserData);  // 쿠키에 사용자 정보 저장
-    localStorage.setItem('userInfo', parsedUserData);
-    setUserInfo(session?.userData); // 상태에 사용자 정보 저장
-    console.log(session?.userData);
+    // console.log(session?.userData);
     // console.log(session);
     // console.log(status);
   }, [status]);
@@ -167,7 +187,7 @@ export function MyProvider({ children }) {
     const infoStorage = localStorage.getItem('userInfo');
     if (userInfo) {
 
-      console.log(userInfo);
+      // console.log(userInfo);
 
       function omit(obj, ...keys) {
         const result = { ...obj }
@@ -179,24 +199,85 @@ export function MyProvider({ children }) {
 
       // Cookies.set('userInfo', JSON.stringify(userInfo));
       localStorage.setItem('userInfo', JSON.stringify(filteredInfo));
-      console.log('쿠키 등록함~');
-      console.log(userInfo);
-      console.log(infoStorage);
+      console.log('로컬스토리지 등록함~');
+      // console.log(userInfo);
+      // console.log(infoStorage);
     }
     // console.log(session);
     // console.log(status);
   }, [userInfo]);
   
   useEffect(() => {
-    console.log(userInfo);
-  }, [])
-
-  useEffect(() => {
     setListCategoryNum(0);
     setComunityCategoryNum(0);
     setInfoCategoryNum(0);
 
   }, [mainCategoryNum])
+
+  const handleModalConfirm = () => {
+    setIsConfirm(!isConfirm);
+    setMessage('연동 계정 : ' + session?.user?.email);
+    setEmail(session?.user?.email);
+  };
+
+  const handleModalCancel = () => {
+      setIsModal(!isModal);
+      setIsConfirm(!isConfirm);
+      setMessage('');
+      signOut({ redirect:false }).then(()=>{
+        // Cookies.remove('userInfo'); // 로그아웃 시 쿠키 삭제
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('address');
+        localStorage.removeItem('address_details');
+        router.push('/');
+      })
+  };
+
+  const keyPressHandler = (event) => {
+      if (event.key === "Enter") {
+          event.preventDefault(); // 기본 동작 방지
+          loginHandler();
+      } else if (event.key === "Escape") {
+          event.preventDefault(); // 기본 동작 방지
+          handleModalCancel(); // "아니오" 버튼 동작
+      }
+  };
+
+  const loginHandler = async () => {
+    // function omit(obj, ...keys) {
+    //   const result = { ...obj }
+    //   keys.forEach(key => delete result[key])
+    //   return result
+    // }
+
+    // const filteredInfo = omit(session?.userData, 'order', 'userInfo');
+    
+    // const parsedUserData = JSON.stringify(filteredInfo);
+    // // Cookies.set('userInfo', parsedUserData);  // 쿠키에 사용자 정보 저장
+    // localStorage.setItem('userInfo', parsedUserData);
+    // setUserInfo(session?.userData); // 상태에 사용자 정보 저장
+
+    const response = await fetch('/api/login',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+      },
+      body: JSON.stringify({
+        email,password
+      })
+    });
+
+    const data = response.json();
+
+    if( response.ok ) {
+      setIsModal(false);
+      setIsConfirm(false);
+      updateUserInDB(session,userInfo,router);
+      alert('계정연동에 성공했습니다! \n다시 로그인해 주세요.');
+    } else {
+      alert(data.message);
+    }
+  }
 
   return (
     <ShareContext.Provider value={{
@@ -220,6 +301,52 @@ export function MyProvider({ children }) {
       status,
     }}>
       {children}
+      {isModal && (
+        <div className='modal show' onKeyPress={keyPressHandler} tabIndex={-1}>
+          <div className={`modal-content ${isConfirm ? 'login' : ''}`} ref={modalRef}>
+            { !isConfirm && 
+              <>
+                <h4>{message}</h4>
+                <div>
+                  <button ref={yesButtonRef} onClick={handleModalConfirm}>예</button>
+                  <button onClick={handleModalCancel}>아니오</button>
+                </div>
+              </>
+            }
+            { isConfirm &&
+              <>
+                <h4>{message}</h4>
+                <div className="login-box">
+                  <div>
+                    <input 
+                      type="email" 
+                      id="id" 
+                      onKeyPress={keyPressHandler}
+                      defaultValue={email}
+                    />
+                    <div>
+                      <input 
+                        type={visibility ? 'text' : 'password'} 
+                        id="password"
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyPress={keyPressHandler}
+                        placeholder="비밀번호를 입력하세요"
+                      />
+                      <button onClick={toggleVisibility} 
+                              tabIndex="-1"
+                              aria-label="Toggle password visibility">
+                        {visibility ? <IoEyeOffSharp/> : <IoEyeSharp/>}
+                      </button>
+                    </div>
+                  </div>
+                  <button onClick={loginHandler}>로그인</button>
+                </div>
+                <button onClick={handleModalCancel}>취소</button>
+              </>
+            }
+          </div>
+        </div>
+      )}    
     </ShareContext.Provider>
   );
 }
@@ -229,7 +356,7 @@ export function useShareContext() {
   return useContext(ShareContext);
 }
 
-async function updateUserInDB(userInfo,router) {
+async function updateUserInDB(session,userInfo,router) {
   try {
     const response = await fetch('/api/update-info', {
       method: 'POST',
@@ -237,12 +364,14 @@ async function updateUserInDB(userInfo,router) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id: userInfo?.userInfo?.username,
-        email: userInfo?.userInfo?.email,
+        id: session?.userData?.userInfo?.username,
+        email: session?.userData?.userInfo?.email,
         address: userInfo?.userInfo?.address,
         details: userInfo?.userInfo?.address_detail,
-        cart: userInfo?.cart,
-        interest: userInfo?.jjim,
+        loginform: session?.provider,
+        loginformId: session?.user?.id,
+        cart: session?.userData?.cart,
+        interest: session?.userData?.jjim,
       }),
     });
 
@@ -251,6 +380,8 @@ async function updateUserInDB(userInfo,router) {
       signOut({ redirect:false }).then(()=>{
         // Cookies.remove('userInfo'); // 로그아웃 시 쿠키 삭제
         localStorage.removeItem('userInfo');
+        localStorage.removeItem('address');
+        localStorage.removeItem('address_details');
         router.push('/');
       })
     } else {

@@ -277,14 +277,14 @@ export default function Info() {
                         <input
                             type="text"
                             id="id"
-                            defaultValue={userInfo.userInfo?.username}
+                            defaultValue={userInfo?.userInfo?.username}
                             onChange={(e) => setUser({ ...user, nickname: e.target.value })}
                             />
                         <button onClick={checkDupIdHandler}>중복확인</button>
                     </div>
                     <div>
                         <label htmlFor="email">이메일</label>
-                        <input type="email" id="email" value={userInfo.userInfo?.email} readOnly />
+                        <input type="email" id="email" value={userInfo?.userInfo?.email} readOnly />
                     </div>
                     <div>
                         <button onClick={checkChangeable}>수정하기</button>

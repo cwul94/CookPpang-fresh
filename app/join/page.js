@@ -30,10 +30,12 @@ export default function Join() {
         if (status === "authenticated") {
             setUser((prevUser)=>({
                 ...prevUser,
+                email:session?.user?.email,
                 nickname:session?.user?.name,
             }));
             setCondition((prevCondition)=>({
                 ...prevCondition,
+                email: true,
                 password: true,
                 pwdChk: true,
             }));
@@ -197,7 +199,8 @@ export default function Join() {
                         router.push('/');
                     });
                 } else {
-                    alert('데이터 송신에 문제가 있습니다.\n관리자에게 문의해주세요.');
+                    // alert('데이터 송신에 문제가 있습니다.\n관리자에게 문의해주세요.');
+                    alert(response.status);
                 }
             } catch(e) {
                 console.error('Error during registration:', e);
@@ -219,18 +222,17 @@ export default function Join() {
                 </div>
             </div>
             <div className="join-userinfo">
-                
-                <div>
-                    <label htmlFor="email">이메일</label>
-                    <input type="email" id="email" placeholder="이메일을 입력하세요" />
-                    <button onClick={checkDupEmailHandler}>중복확인</button>
-                </div>
                 <div>
                     <label htmlFor="id">닉네임</label>
                     <input type="text" id="id" onChange={checkIdHandler} defaultValue={user.nickname} placeholder="닉네임을 입력하세요" />
                     <button onClick={checkDupIdHandler}>중복확인</button>
                 </div>
                 {status !== 'authenticated' && (<>
+                    <div>
+                        <label htmlFor="email">이메일</label>
+                        <input type="email" id="email" placeholder="이메일을 입력하세요" />
+                        <button onClick={checkDupEmailHandler}>중복확인</button>
+                    </div>
                     <div>
                         <label htmlFor="pwd">비밀번호</label>
                         <input type={visibility.password ? 'text' : 'password'} id="pwd" onChange={checkPwdHandler} placeholder="비밀번호를 입력하세요" />

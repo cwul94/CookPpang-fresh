@@ -47,24 +47,30 @@ export default NextAuth({
       },
       async authorize(credentials) {
         console.log('authorize 진입!');
-        const db = await getDatabaseConnection();
 
-        const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [credentials.email]);
-        
-        if ( rows.length === 0 ) {
-          throw new Error('존재하지않는 아이디입니다.')
+        if(credentials.password) {
+
+          const db = await getDatabaseConnection();
+          
+          const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [credentials.email]);
+          
+          if ( rows.length === 0 ) {
+            throw new Error('존재하지않는 계정입니다.')
+          }
+          const user = rows[0];
+          const isMatch = await bcrypt.compare(credentials.password, user.password);
+          db.release();
+          
+          if ( !isMatch ) {
+            throw new Error('비밀번호를 확인해주세요.')
+          }
+          
+          console.log('Valid User!');
+          
+          return user; // 사용자가 확인되면 반환
+        } else {
+          throw new Error('비밀번호를 입력해주세요.');
         }
-        const user = rows[0];
-        const isMatch = await bcrypt.compare(credentials.password, user.password);
-        db.release();
-
-        if ( !isMatch ) {
-          throw new Error('비밀번호를 확인해주세요.')
-        }
-
-        console.log('Valid User!');
-
-        return user; // 사용자가 확인되면 반환
       }
     })
   ],
@@ -135,11 +141,12 @@ export default NextAuth({
         console.log("Account Vaild : " + account.providerAccountId);
         
         let userRows;
-        if ( account.provider === 'credentials' ) {
-          [userRows] = await db.query('SELECT user_id FROM users WHERE email = ?', [token.email]);
-        } else {
-          [userRows] = await db.query('SELECT user_id FROM users WHERE loginform_id = ?', [account.providerAccountId]);
-        }
+        [userRows] = await db.query('SELECT user_id FROM users WHERE email = ?', [token.email]);
+        // if ( account.provider === 'credentials' ) {
+        //   [userRows] = await db.query('SELECT user_id FROM users WHERE email = ?', [token.email]);
+        // } else {
+        //   [userRows] = await db.query('SELECT user_id FROM users WHERE loginform_id = ?', [account.providerAccountId]);
+        // }
 
         const userId = userRows[0]?.user_id;
         // 회원이 존재하지 않으면 token에 userData를 설정하지 않음 (null 처리)
@@ -160,52 +167,52 @@ export default NextAuth({
           return token;
         }
 
-        if (account.provider === 'credentials') {
+        // if (account.provider === 'credentials') {
 
-          const checkRefreshTokenValidity = async (refreshToken) => {
-            try {
-              // 토큰 해독
-              const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        //   const checkRefreshTokenValidity = async (refreshToken) => {
+        //     try {
+        //       // 토큰 해독
+        //       const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
           
-              if (!decoded || !decoded.exp) {
-                throw new Error('유효하지 않은 refresh_token입니다.');
-              }
+        //       if (!decoded || !decoded.exp) {
+        //         throw new Error('유효하지 않은 refresh_token입니다.');
+        //       }
           
-              // 토큰 만료 여부 확인
-              if (decoded.exp < currentTime) {
-                console.log('refresh_token이 만료되었습니다.');
-                addRefreshSecretToEnv();
-                function generateRefreshToken(userId) {
-                  const refreshToken = jwt.sign(
-                    { id: userId },
-                    process.env.REFRESH_TOKEN_SECRET,
-                    { expiresIn: '7d' } // refresh 토큰 7일 유효
-                  );
-                  return refreshToken;
-                }
-                const refresh = generateRefreshToken(token.email);
-                await db.query('UPDATE users SET refresh_token = ? WHERE user_id = ?', [refresh, userId]);
+        //       // 토큰 만료 여부 확인
+        //       if (decoded.exp < currentTime) {
+        //         console.log('refresh_token이 만료되었습니다.');
+        //         addRefreshSecretToEnv();
+        //         function generateRefreshToken(userId) {
+        //           const refreshToken = jwt.sign(
+        //             { id: userId },
+        //             process.env.REFRESH_TOKEN_SECRET,
+        //             { expiresIn: '7d' } // refresh 토큰 7일 유효
+        //           );
+        //           return refreshToken;
+        //         }
+        //         const refresh = generateRefreshToken(token.email);
+        //         await db.query('UPDATE users SET refresh_token = ? WHERE user_id = ?', [refresh, userId]);
 
-              } else {
-                console.log('refresh_token이 아직 유효합니다.');
-                return true;
-              }
-            } catch (error) {
-              if (error.name === 'TokenExpiredError') {
-                // 토큰 만료 처리 로직
-                console.log('Token expired');
-              } else {
-                console.log('Token decode error: ', error.message);
-              }
-              return false;
-            }
-          };
+        //       } else {
+        //         console.log('refresh_token이 아직 유효합니다.');
+        //         return true;
+        //       }
+        //     } catch (error) {
+        //       if (error.name === 'TokenExpiredError') {
+        //         // 토큰 만료 처리 로직
+        //         console.log('Token expired');
+        //       } else {
+        //         console.log('Token decode error: ', error.message);
+        //       }
+        //       return false;
+        //     }
+        //   };
           
-          // refresh_token이 유효한지 확인
-          checkRefreshTokenValidity(user?.refresh_token);
-        } else {
-          await db.query('UPDATE users SET refresh_token = ? WHERE user_id = ?', [account.refresh_token, userId]);
-        }
+        //   // refresh_token이 유효한지 확인
+        //   checkRefreshTokenValidity(user?.refresh_token);
+        // } else {
+        //   await db.query('UPDATE users SET refresh_token = ? WHERE user_id = ?', [account.refresh_token, userId]);
+        // }
 
         // 회원 정보가 존재하면 여러 테이블에서 데이터 조회 후 token에 추가
         const [rows] = await db.query('SELECT email,password,username,address,address_detail,loginform,loginform_id,profile_img FROM users WHERE user_id = ?', [userId]);
@@ -216,7 +223,10 @@ export default NextAuth({
         db.release();
 
         if (rows.length > 0) {
-          const userData = {userInfo: rows[0], cart: cartRows, jjim: jjimRows, order: orderRows};
+          let userData = {userInfo: rows[0], cart: cartRows, jjim: jjimRows, order: orderRows};
+          if ( account.provider !== 'credentials' && rows[0].password && !rows[0].loginform_id) {
+            userData = {userInfo: rows[0], cart: cartRows, jjim: jjimRows, order: orderRows, dupStatus: true};
+          }
           token.userData = userData; // 토큰에 사용자 데이터 추가
           console.log('Data Valid : ' + token.userData);
         }

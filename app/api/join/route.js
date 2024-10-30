@@ -37,14 +37,14 @@ export async function POST(req) {
         const db = await getDatabaseConnection();
 
         // 이미 존재하는 이메일 확인
-        const [existingUser] = await db.query('SELECT * FROM users WHERE loginform_id = ?', [session?.user?.session?.user?.id]);
+        const [existingUser] = await db.query('SELECT * FROM users WHERE email = ?', [session?.user?.email]);
         if (existingUser.length > 0) {
             db.release();
             return NextResponse.json({ error: 'User already exists' }, { status: 409 });
         }
 
         let hashedPassword = null;
-        if (user.password) {
+        if (user.password) {çççç
             hashedPassword = await bcrypt.hash(user.password, 10);
         }
 

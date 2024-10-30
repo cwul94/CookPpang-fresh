@@ -6,7 +6,6 @@ import { useShareContext } from "@/context/ShareContext";
 import { IoEyeSharp, IoEyeOffSharp } from "react-icons/io5";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
-import Cookies from "js-cookie";
 
 export default function Home() {
 
@@ -52,12 +51,12 @@ export default function Home() {
     // return;
     setMainCategoryNum(0);
     setUserInfo(null);
-    updateUserInDB(userInfo,router);
+    updateUserInDB(session,userInfo,router);
   }
 
   return (
     <div>
-      { status === 'authenticated' && (
+      { userInfo && status === 'authenticated' && (
         <div className="login-success">
           { userInfo?.userInfo?.profile_img &&
             <Image src={userInfo?.userInfo?.profile_img}
@@ -170,7 +169,7 @@ function LoadingMessage() {
   );
 }
 
-async function updateUserInDB(userInfo,router) {
+async function updateUserInDB(session,userInfo,router) {
   try {
     const response = await fetch('/api/update-info', {
       method: 'POST',
@@ -178,12 +177,14 @@ async function updateUserInDB(userInfo,router) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id: userInfo?.userInfo?.username,
-        email: userInfo?.userInfo?.email,
+        id: session?.userData?.userInfo?.username,
+        email: session?.userData?.userInfo?.email,
         address: userInfo?.userInfo?.address,
         details: userInfo?.userInfo?.address_detail,
-        cart: userInfo?.cart,
-        interest: userInfo?.jjim,
+        loginform: session?.provider,
+        loginformId: session?.user?.id,
+        cart: session?.userData?.cart,
+        interest: session?.userData?.jjim,
       }),
     });
 

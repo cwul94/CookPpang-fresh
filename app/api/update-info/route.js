@@ -4,7 +4,7 @@ import { getDatabaseConnection } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
-  const { id, email, address, details, cart, interest } = await req.json();
+  const { id, email, address, details, loginform, loginformId, cart, interest } = await req.json();
 
   if (!email) {
     return NextResponse.json({ error: 'Username is required' }, { status: 400 });
@@ -24,7 +24,7 @@ export async function POST(req) {
     const userId = userRows[0].user_id;
 
     // Update data with retry logic
-    const success = await updateUserDataWithRetry(db, id, userId, address, details, cart, interest, 3); // 최대 3번 재시도
+    const success = await updateUserDataWithRetry(db, id, userId, address, details, loginform, loginformId, cart, interest, 3); // 최대 3번 재시도
     if (!success) {
       return NextResponse.json({ error: 'Failed to update data after multiple attempts' }, { status: 500 });
     }
@@ -37,7 +37,7 @@ export async function POST(req) {
   }
 }
 
-async function updateUserDataWithRetry(db, id, userId, address, details, carts, interests, maxRetries) {
+async function updateUserDataWithRetry(db, id, userId, address, details, loginform, loginformId, carts, interests, maxRetries) {
   let attempt = 0;
   while (attempt < maxRetries) {
     try {
@@ -47,7 +47,7 @@ async function updateUserDataWithRetry(db, id, userId, address, details, carts, 
       await db.query('DELETE FROM cart WHERE user_id = ?', [userId]);
       await db.query('DELETE FROM interest WHERE user_id = ?', [userId]);
 
-      await db.query('UPDATE USERS SET username = ?, address = ?, address_detail = ? WHERE user_id = ?', [id,address,details,userId])
+      await db.query('UPDATE USERS SET username = ?, address = ?, address_detail = ?, loginform = ?, loginform_id = ? WHERE user_id = ?', [id,address,details,loginform,loginformId,userId])
 
       // Insert new carts
       if (carts && Array.isArray(carts) && carts.length !== 0) {
