@@ -182,7 +182,6 @@ async function updateUserInDB(session,userInfo,router) {
         address: userInfo?.userInfo?.address,
         details: userInfo?.userInfo?.address_detail,
         loginform: session?.provider,
-        loginformId: session?.user?.id,
         cart: session?.userData?.cart,
         interest: session?.userData?.jjim,
       }),

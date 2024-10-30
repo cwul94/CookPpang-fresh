@@ -272,7 +272,7 @@ export function MyProvider({ children }) {
     if( response.ok ) {
       setIsModal(false);
       setIsConfirm(false);
-      updateUserInDB(session,userInfo,router);
+      updateUserConnectInDB(session,userInfo,router);
       alert('계정연동에 성공했습니다! \n다시 로그인해 주세요.');
     } else {
       alert(data.message);
@@ -357,6 +357,41 @@ export function useShareContext() {
 }
 
 async function updateUserInDB(session,userInfo,router) {
+  try {
+    const response = await fetch('/api/update-info', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: session?.userData?.userInfo?.username,
+        email: session?.userData?.userInfo?.email,
+        address: userInfo?.userInfo?.address,
+        details: userInfo?.userInfo?.address_detail,
+        loginform: session?.provider,
+        cart: session?.userData?.cart,
+        interest: session?.userData?.jjim,
+      }),
+    });
+
+    if (response.ok) {
+      console.log('User information successfully updated in the database');
+      signOut({ redirect:false }).then(()=>{
+        // Cookies.remove('userInfo'); // 로그아웃 시 쿠키 삭제
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('address');
+        localStorage.removeItem('address_details');
+        router.push('/');
+      })
+    } else {
+      console.error('Failed to update user information in the database');
+    }
+  } catch (error) {
+    console.error('Error during API request:', error);
+  }
+}
+
+async function updateUserConnectInDB(session,userInfo,router) {
   try {
     const response = await fetch('/api/update-info', {
       method: 'POST',

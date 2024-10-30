@@ -47,7 +47,11 @@ async function updateUserDataWithRetry(db, id, userId, address, details, loginfo
       await db.query('DELETE FROM cart WHERE user_id = ?', [userId]);
       await db.query('DELETE FROM interest WHERE user_id = ?', [userId]);
 
-      await db.query('UPDATE USERS SET username = ?, address = ?, address_detail = ?, loginform = ?, loginform_id = ? WHERE user_id = ?', [id,address,details,loginform,loginformId,userId])
+      if( loginformId ) {
+        await db.query('UPDATE USERS SET username = ?, address = ?, address_detail = ?, loginform = ?, loginform_id = ? WHERE user_id = ?', [id,address,details,loginform,loginformId,userId])
+      } else {
+        await db.query('UPDATE USERS SET username = ?, address = ?, address_detail = ?, loginform = ? WHERE user_id = ?', [id,address,details,loginform,userId])
+      }
 
       // Insert new carts
       if (carts && Array.isArray(carts) && carts.length !== 0) {
