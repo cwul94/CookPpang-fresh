@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useShareContext } from "@/context/ShareContext";
 import { IoEyeSharp, IoEyeOffSharp } from "react-icons/io5";
+import { FaUser } from "react-icons/fa6";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 
@@ -66,6 +67,9 @@ export default function Home() {
                   style={{ borderRadius:'50%'}}
                   priority
             />
+          }
+          { !userInfo?.userInfo?.profile_img &&
+            <FaUser size={100} color="white" />
           }
           <p>{userInfo?.userInfo?.username} 님 환영합니다</p>
           <div>
@@ -181,7 +185,6 @@ async function updateUserInDB(session,userInfo,router) {
         email: session?.userData?.userInfo?.email,
         address: userInfo?.userInfo?.address,
         details: userInfo?.userInfo?.address_detail,
-        loginform: session?.provider,
         cart: session?.userData?.cart,
         interest: session?.userData?.jjim,
       }),

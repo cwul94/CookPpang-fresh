@@ -8,7 +8,16 @@ import jwt from 'jsonwebtoken';
 
 export async function POST(req) {
     const { user, session } = await req.json();
-    
+
+    (async () => {
+        try {
+            await client.connect();
+            console.log('Redis 연결 성공');
+        } catch (err) {
+            console.error('Redis 초기 연결 실패:', err);
+        }
+      })();
+
     // const refresh = await client.hGetAll(`user:${user?.id}`);
     let refresh = await client.get('refresh_token');
 
@@ -21,13 +30,15 @@ export async function POST(req) {
             );
             return refreshToken;
         }
-
         
         refresh = generateRefreshToken(user?.email);
+        await client.del("refresh_token"); // 토큰 삭제
+
         console.log('jwt : ' + refresh);
     }
    
     const profileImg = await client.get('profile_img');
+    await client.del("profile_img");
 
     if (!user.email || !user.nickname) {
         return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
@@ -44,19 +55,26 @@ export async function POST(req) {
         }
 
         let hashedPassword = null;
-        if (user.password) {çççç
+        if (user.password) {
             hashedPassword = await bcrypt.hash(user.password, 10);
         }
 
+        let provider;
+
+        if( session?.provider ) {
+            provider = session?.provider;
+        } else {
+            provider = 'credentials';
+        }
+
         // 사용자 정보 삽입
-        await db.query('INSERT INTO users(username, password, email, loginform, loginform_id, profile_img, refresh_token) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-                       [user.nickname, hashedPassword, user.email, session?.provider, session?.user?.id, profileImg, refresh]);
+        await db.query('INSERT INTO users(username, password, email, joinform, connectform, loginform_id, profile_img, refresh_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                       [user.nickname, hashedPassword, user.email, provider, null, session?.user?.id, profileImg, refresh]);
 
         // 새로 생성된 사용자 조회
         const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [user.email]);
 
         db.release();
-        await client.del("refresh_token"); // 토큰 삭제
         await client.disconnect();
         return NextResponse.json({ userInfo: rows[0] });
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { IoEyeSharp, IoEyeOffSharp } from "react-icons/io5";
 import { signOut, useSession } from "next-auth/react";
 
@@ -28,9 +28,6 @@ export function MyProvider({ children }) {
   const toggleVisibility = () => {
     setVisibility(!visibility);
   }
-
-  const modalRef = useRef(null);
-  const yesButtonRef = useRef(null);
   
   const router = useRouter();
   const pathname = usePathname();
@@ -267,13 +264,13 @@ export function MyProvider({ children }) {
       })
     });
 
-    const data = response.json();
+    const data = await response.json();
 
     if( response.ok ) {
       setIsModal(false);
       setIsConfirm(false);
-      updateUserConnectInDB(session,userInfo,router);
       alert('계정연동에 성공했습니다! \n다시 로그인해 주세요.');
+      updateUserConnectInDB(session,router);
     } else {
       alert(data.message);
     }
@@ -303,12 +300,12 @@ export function MyProvider({ children }) {
       {children}
       {isModal && (
         <div className='modal show' onKeyPress={keyPressHandler} tabIndex={-1}>
-          <div className={`modal-content ${isConfirm ? 'login' : ''}`} ref={modalRef}>
+          <div className={`modal-content ${isConfirm ? 'login' : ''}`}>
             { !isConfirm && 
               <>
                 <h4>{message}</h4>
                 <div>
-                  <button ref={yesButtonRef} onClick={handleModalConfirm}>예</button>
+                  <button onClick={handleModalConfirm}>예</button>
                   <button onClick={handleModalCancel}>아니오</button>
                 </div>
               </>
@@ -368,7 +365,6 @@ async function updateUserInDB(session,userInfo,router) {
         email: session?.userData?.userInfo?.email,
         address: userInfo?.userInfo?.address,
         details: userInfo?.userInfo?.address_detail,
-        loginform: session?.provider,
         cart: session?.userData?.cart,
         interest: session?.userData?.jjim,
       }),
@@ -391,7 +387,7 @@ async function updateUserInDB(session,userInfo,router) {
   }
 }
 
-async function updateUserConnectInDB(session,userInfo,router) {
+async function updateUserConnectInDB(session,router) {
   try {
     const response = await fetch('/api/update-info', {
       method: 'POST',
@@ -399,14 +395,9 @@ async function updateUserConnectInDB(session,userInfo,router) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id: session?.userData?.userInfo?.username,
         email: session?.userData?.userInfo?.email,
-        address: userInfo?.userInfo?.address,
-        details: userInfo?.userInfo?.address_detail,
-        loginform: session?.provider,
+        connectform: session?.provider,
         loginformId: session?.user?.id,
-        cart: session?.userData?.cart,
-        interest: session?.userData?.jjim,
       }),
     });
 

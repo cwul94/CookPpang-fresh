@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react";
 import { IoEyeSharp, IoEyeOffSharp } from "react-icons/io5";
+import { useEffect, useState } from "react";
 import { useShareContext } from "@/context/ShareContext";
 import { signOut } from "next-auth/react";
 
@@ -35,7 +35,7 @@ export default function Join() {
             }));
             setCondition((prevCondition)=>({
                 ...prevCondition,
-                email: true,
+                email: session?.user?.email ? true : false,
                 password: true,
                 pwdChk: true,
             }));
@@ -188,9 +188,9 @@ export default function Join() {
         if(isJoinable) {
             try {
                 const response = await fetch('/api/join',{
-                        method: 'POST',
-                        headers: {'Content-Type':'application/json'},
-                        body: JSON.stringify({user, session})
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({user, session})
                 })
                 if (response.ok) {
                     // 회원가입 성공 후의 처리 로직
@@ -227,7 +227,15 @@ export default function Join() {
                     <input type="text" id="id" onChange={checkIdHandler} defaultValue={user.nickname} placeholder="닉네임을 입력하세요" />
                     <button onClick={checkDupIdHandler}>중복확인</button>
                 </div>
-                {status !== 'authenticated' && (<>
+                {status === 'authenticated' && session?.provider === 'naver' &&
+                    <div>
+                     <label htmlFor="email">이메일</label>
+                     <input type="email" id="email" placeholder="이메일을 입력하세요" />
+                     <button onClick={checkDupEmailHandler}>중복확인</button>
+                    </div>
+                }
+                {status !== 'authenticated' && (
+                    <>
                     <div>
                         <label htmlFor="email">이메일</label>
                         <input type="email" id="email" placeholder="이메일을 입력하세요" />
@@ -242,7 +250,8 @@ export default function Join() {
                         <label htmlFor="pwdChk">비밀번호 확인</label>
                         <input type={visibility.pwdChk ? 'text' : 'password'} id="pwdChk" onChange={checkPwdChkHandler} placeholder="비밀번호를 다시 입력하세요" />
                         <button onClick={() => toggleVisibility('pwdChk')} tabIndex="-1" aria-label="Toggle password confirmation visibility">{visibility.pwdChk ? <IoEyeOffSharp /> : <IoEyeSharp />}</button>
-                    </div></>
+                    </div>
+                    </>
                 )}
                 
                 <button onClick={checkJoinable}>회원가입</button>

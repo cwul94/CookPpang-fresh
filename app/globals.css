@@ -263,11 +263,12 @@ input:focus {
   align-items: center;
   text-align: center;
   background-color: white;
+  border: none;
   color: black;
   position: absolute;
   right: 3px;
 }
-.login-box button {
+.login-box > button {
   width: 90px;
   color: white;
   text-align: center;

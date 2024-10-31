@@ -11,6 +11,8 @@ import bcrypt from "bcrypt";
 import client from "@/lib/redisClient";
 import jwt from "jsonwebtoken";
 
+
+
 export default NextAuth({
   debug: true,
   // Configure one or more authentication providers
@@ -142,9 +144,10 @@ export default NextAuth({
         
         let userRows;
         [userRows] = await db.query('SELECT user_id FROM users WHERE email = ?', [token.email]);
-        // if ( account.provider === 'credentials' ) {
-        //   [userRows] = await db.query('SELECT user_id FROM users WHERE email = ?', [token.email]);
-        // } else {
+        if ( account.provider === 'naver' ) {
+          [userRows] = await db.query('SELECT user_id FROM users WHERE loginform_id = ?', [account.providerAccountId]);
+        } 
+        // else {
         //   [userRows] = await db.query('SELECT user_id FROM users WHERE loginform_id = ?', [account.providerAccountId]);
         // }
 
@@ -154,6 +157,15 @@ export default NextAuth({
 
           const refresh = account.refresh_token;
 
+          (async () => {
+            try {
+                await client.connect();
+                console.log('Redis 연결 성공');
+            } catch (err) {
+                console.error('Redis 초기 연결 실패:', err);
+            }
+          })();
+
           await client.set('refresh_token', refresh);
           if (user.image) {
             await client.set('profile_img', user.image);
@@ -162,6 +174,7 @@ export default NextAuth({
           console.log('Stored Keys:', keys);
 
           db.release();
+          await client.disconnect();
           console.log('Data Invalid');
           token.userData = null;
           return token;
@@ -215,7 +228,7 @@ export default NextAuth({
         // }
 
         // 회원 정보가 존재하면 여러 테이블에서 데이터 조회 후 token에 추가
-        const [rows] = await db.query('SELECT email,password,username,address,address_detail,loginform,loginform_id,profile_img FROM users WHERE user_id = ?', [userId]);
+        const [rows] = await db.query('SELECT email,password,username,address,address_detail,joinform,connectform,loginform_id,profile_img FROM users WHERE user_id = ?', [userId]);
         const [cartRows] = await db.query('SELECT * FROM cart where user_id = ?', [userId]);
         const [jjimRows] = await db.query('SELECT * FROM interest where user_id = ?', [userId]);
         const [orderRows] = await db.query('SELECT * FROM orders where user_id = ?', [userId]);
