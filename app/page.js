@@ -52,7 +52,7 @@ export default function Home() {
     // return;
     setMainCategoryNum(0);
     setUserInfo(null);
-    updateUserInDB(session,userInfo,router);
+    updateUserInDB(userInfo,router);
   }
 
   return (
@@ -173,7 +173,7 @@ function LoadingMessage() {
   );
 }
 
-async function updateUserInDB(session,userInfo,router) {
+async function updateUserInDB(userInfo,router) {
   try {
     const response = await fetch('/api/update-info', {
       method: 'POST',
@@ -181,12 +181,12 @@ async function updateUserInDB(session,userInfo,router) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id: session?.userData?.userInfo?.username,
-        email: session?.userData?.userInfo?.email,
+        id: userInfo?.userInfo?.username,
+        email: userInfo?.userInfo?.email,
         address: userInfo?.userInfo?.address,
         details: userInfo?.userInfo?.address_detail,
-        cart: session?.userData?.cart,
-        interest: session?.userData?.jjim,
+        cart: userInfo?.cart,
+        interest: userInfo?.jjim,
       }),
     });
 

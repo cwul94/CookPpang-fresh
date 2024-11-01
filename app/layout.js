@@ -178,7 +178,7 @@ function Navbar({ setIsModal, setIsModalVisible, setMessage, setIsVisible }) {
   const logoutHandler = () => {
     setMainCategoryNum(0);
     setUserInfo(null);
-    updateUserInDB(session,userInfo,router);
+    updateUserInDB(userInfo,router);
   };
 
   return (
@@ -240,7 +240,7 @@ function Navbar({ setIsModal, setIsModalVisible, setMessage, setIsVisible }) {
   );
 }
 
-async function updateUserInDB(session,userInfo,router) {
+async function updateUserInDB(userInfo,router) {
   try {
     const response = await fetch('/api/update-info', {
       method: 'POST',
@@ -248,13 +248,12 @@ async function updateUserInDB(session,userInfo,router) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id: session?.userData?.userInfo?.username,
-        email: session?.userData?.userInfo?.email,
+        id: userInfo?.userInfo?.username,
+        email: userInfo?.userInfo?.email,
         address: userInfo?.userInfo?.address,
         details: userInfo?.userInfo?.address_detail,
-        loginform: session?.provider,
-        cart: session?.userData?.cart,
-        interest: session?.userData?.jjim,
+        cart: userInfo?.cart,
+        interest: userInfo?.jjim,
       }),
     });
 

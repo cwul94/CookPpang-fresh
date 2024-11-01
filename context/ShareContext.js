@@ -103,7 +103,7 @@ export function MyProvider({ children }) {
       // const infoCookie = Cookies.get('userInfo');
       const infoStorage = localStorage.getItem('userInfo');
       if(infoStorage) {
-        updateUserInDB(session?.userData,userInfo,router);
+        updateUserInDB(userInfo,router);
       }
       return;
     }
@@ -114,40 +114,15 @@ export function MyProvider({ children }) {
       router.push('/join');
       return;
     }
-
-    // 중복된 이메일로 로그인 시도시 연동 절차
-    if (status === 'authenticated' && session?.userData?.dupStatus ) {
-      setIsModal(!isModal);
-      setMessage('동일한 이메일이 사용되고 있습니다. \n계정을 연동하시겠습니까?');
-    } else {
-      function omit(obj, ...keys) {
-        const result = { ...obj }
-        keys.forEach(key => delete result[key])
-        return result
-      }
-  
-      const filteredInfo = omit(session?.userData, 'order', 'userInfo');
       
-      const parsedUserData = JSON.stringify(filteredInfo);
-      // Cookies.set('userInfo', parsedUserData);  // 쿠키에 사용자 정보 저장
-      localStorage.setItem('userInfo', parsedUserData);
-      setUserInfo(session?.userData); // 상태에 사용자 정보 저장
-    }
-  
-    // 쿠키에서 사용자 정보를 가져오고, 쿠키가 있는 경우 세션 사용자 정보를 업데이트
-    // const infoCookie = Cookies.get('userInfo');
-    
     const infoStorage = localStorage.getItem('userInfo');
 
     // 쿠키에서 정보 가져오기: JSON 파싱이 필요함
     if (status === 'authenticated' && session?.userData && infoStorage) {
       console.log('이미 로그인됨');
       const infoStorage = JSON.parse(localStorage.getItem('userInfo'));
-      // console.log(localStorage.getItem('userInfo'));
       if (infoStorage) {
-        // console.log('쿠키에서 사용자 정보 로드');
-        // console.log(infoCookie);
-        // console.log(userInfo);
+        console.log('쿠키에서 사용자 정보 로드');
         setUserInfo({
           userInfo: session?.userData.userInfo,
           cart: infoStorage?.cart,
@@ -158,8 +133,6 @@ export function MyProvider({ children }) {
         const addressStorage = localStorage.getItem('address');
         const detailsStorage = localStorage.getItem('address_details');
         if ( addressStorage ) {
-          // console.log(addressStorage);
-          // console.log(detailsStorage);
           setUserInfo( prevInfo => ({
             ...prevInfo,
             userInfo: {
@@ -172,36 +145,44 @@ export function MyProvider({ children }) {
       }
       return;
     }
-    // console.log(session?.userData);
-    // console.log(session);
-    // console.log(status);
+
+    function omit(obj, ...keys) {
+      const result = { ...obj }
+      keys.forEach(key => delete result[key])
+      return result
+    }
+
+    const filteredInfo = omit(session?.userData, 'order', 'userInfo');
+    
+    const parsedUserData = JSON.stringify(filteredInfo);
+    // Cookies.set('userInfo', parsedUserData);  // 쿠키에 사용자 정보 저장
+    localStorage.setItem('userInfo', parsedUserData);
+    setUserInfo(session?.userData); // 상태에 사용자 정보 저장
+
+    // 중복된 이메일로 로그인 시도시 연동 절차
+    if (status === 'authenticated' && session?.userData?.dupStatus ) {
+      setIsModal(!isModal);
+      setUserInfo(null);
+      localStorage.removeItem('userInfo');
+      setMessage('동일한 이메일이 사용되고 있습니다. \n계정을 연동하시겠습니까?');
+    }
+
   }, [status]);
   
   useEffect(() => {
     // userInfo 상태가 업데이트될 때마다 쿠키에 저장
-    // console.log(userInfo)
-    // const infoCookie = Cookies.get('userInfo');
     const infoStorage = localStorage.getItem('userInfo');
     if (userInfo) {
-
-      // console.log(userInfo);
-
       function omit(obj, ...keys) {
         const result = { ...obj }
         keys.forEach(key => delete result[key])
         return result
       }
-  
-      const filteredInfo = omit(userInfo, 'order', 'userInfo');
 
-      // Cookies.set('userInfo', JSON.stringify(userInfo));
+      const filteredInfo = omit(userInfo, 'order', 'userInfo');
       localStorage.setItem('userInfo', JSON.stringify(filteredInfo));
       console.log('로컬스토리지 등록함~');
-      // console.log(userInfo);
-      // console.log(infoStorage);
     }
-    // console.log(session);
-    // console.log(status);
   }, [userInfo]);
   
   useEffect(() => {
@@ -222,7 +203,6 @@ export function MyProvider({ children }) {
       setIsConfirm(!isConfirm);
       setMessage('');
       signOut({ redirect:false }).then(()=>{
-        // Cookies.remove('userInfo'); // 로그아웃 시 쿠키 삭제
         localStorage.removeItem('userInfo');
         localStorage.removeItem('address');
         localStorage.removeItem('address_details');
@@ -241,18 +221,6 @@ export function MyProvider({ children }) {
   };
 
   const loginHandler = async () => {
-    // function omit(obj, ...keys) {
-    //   const result = { ...obj }
-    //   keys.forEach(key => delete result[key])
-    //   return result
-    // }
-
-    // const filteredInfo = omit(session?.userData, 'order', 'userInfo');
-    
-    // const parsedUserData = JSON.stringify(filteredInfo);
-    // // Cookies.set('userInfo', parsedUserData);  // 쿠키에 사용자 정보 저장
-    // localStorage.setItem('userInfo', parsedUserData);
-    // setUserInfo(session?.userData); // 상태에 사용자 정보 저장
 
     const response = await fetch('/api/login',{
       method:'POST',
@@ -353,7 +321,7 @@ export function useShareContext() {
   return useContext(ShareContext);
 }
 
-async function updateUserInDB(session,userInfo,router) {
+async function updateUserInDB(userInfo,router) {
   try {
     const response = await fetch('/api/update-info', {
       method: 'POST',
@@ -361,19 +329,18 @@ async function updateUserInDB(session,userInfo,router) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id: session?.userData?.userInfo?.username,
-        email: session?.userData?.userInfo?.email,
+        id: userInfo?.userInfo?.username,
+        email: userInfo?.userInfo?.email,
         address: userInfo?.userInfo?.address,
         details: userInfo?.userInfo?.address_detail,
-        cart: session?.userData?.cart,
-        interest: session?.userData?.jjim,
+        cart: userInfo?.cart,
+        interest: userInfo?.jjim,
       }),
     });
 
     if (response.ok) {
       console.log('User information successfully updated in the database');
       signOut({ redirect:false }).then(()=>{
-        // Cookies.remove('userInfo'); // 로그아웃 시 쿠키 삭제
         localStorage.removeItem('userInfo');
         localStorage.removeItem('address');
         localStorage.removeItem('address_details');
@@ -404,7 +371,6 @@ async function updateUserConnectInDB(session,router) {
     if (response.ok) {
       console.log('User information successfully updated in the database');
       signOut({ redirect:false }).then(()=>{
-        // Cookies.remove('userInfo'); // 로그아웃 시 쿠키 삭제
         localStorage.removeItem('userInfo');
         localStorage.removeItem('address');
         localStorage.removeItem('address_details');
