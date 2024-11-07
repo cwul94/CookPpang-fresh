@@ -38,7 +38,7 @@ async function infoCategoryHandler(setInfoCategoryNum,num) {
 
 function InfoNav() {
 
-    const { userInfo, infoCategoryNum, setInfoCategoryNum, session, status } = useShareContext();
+    const { infoCategoryNum, setInfoCategoryNum, session } = useShareContext();
 
 
     return(
@@ -50,7 +50,7 @@ function InfoNav() {
                 <div onClick={()=> infoCategoryHandler(setInfoCategoryNum,1)}>
                     <p style={infoCategoryNum == 1 ? { color: "cornflowerblue" } : { color: "black" }}>회원정보</p>
                 </div>
-                { userInfo?.userInfo?.password !== null && userInfo?.userInfo?.password !== '' &&
+                { session?.provider == 'credentials' &&
                     <div onClick={()=> infoCategoryHandler(setInfoCategoryNum,2)}>
                         <p style={infoCategoryNum == 2 ? { color: "cornflowerblue" } : { color: "black" }}>비밀번호 변경</p>
                     </div>

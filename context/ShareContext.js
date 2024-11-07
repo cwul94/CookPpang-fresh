@@ -103,6 +103,7 @@ export function MyProvider({ children }) {
       // const infoCookie = Cookies.get('userInfo');
       const infoStorage = localStorage.getItem('userInfo');
       if(infoStorage) {
+        setUserInfo(null);
         updateUserInDB(userInfo,router);
       }
       return;

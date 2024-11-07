@@ -11,9 +11,7 @@ import bcrypt from "bcrypt";
 import client from "@/lib/redisClient";
 import jwt from "jsonwebtoken";
 
-
-
-export default NextAuth({
+export const authOptions = {
   debug: true,
   // Configure one or more authentication providers
   providers: [
@@ -54,12 +52,15 @@ export default NextAuth({
 
           const db = await getDatabaseConnection();
           
-          const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [credentials.email]);
+          const [rows] = await db.query('SELECT user_id FROM users WHERE email = ?', [credentials.email]);
           
           if ( rows.length === 0 ) {
             throw new Error('존재하지않는 계정입니다.')
           }
-          const user = rows[0];
+          
+          const [userRows] = await db.query('SELECT email,password,username,address,address_detail,profile_img FROM users WHERE email = ?', [credentials.email]);
+          const user = userRows[0];
+
           const isMatch = await bcrypt.compare(credentials.password, user.password);
           db.release();
           
@@ -68,6 +69,8 @@ export default NextAuth({
           }
           
           console.log('Valid User!');
+
+          delete user.password;
           
           return user; // 사용자가 확인되면 반환
         } else {
@@ -228,7 +231,7 @@ export default NextAuth({
         // }
 
         // 회원 정보가 존재하면 여러 테이블에서 데이터 조회 후 token에 추가
-        const [rows] = await db.query('SELECT email,password,username,address,address_detail,joinform,connectform,loginform_id,profile_img FROM users WHERE user_id = ?', [userId]);
+        const [rows] = await db.query('SELECT email,username,address,address_detail,profile_img FROM users WHERE user_id = ?', [userId]);
         const [cartRows] = await db.query('SELECT * FROM cart where user_id = ?', [userId]);
         const [jjimRows] = await db.query('SELECT * FROM interest where user_id = ?', [userId]);
         const [orderRows] = await db.query('SELECT * FROM orders where user_id = ?', [userId]);
@@ -313,4 +316,6 @@ export default NextAuth({
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-});
+};
+
+export default NextAuth(authOptions);
