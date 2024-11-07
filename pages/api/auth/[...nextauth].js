@@ -103,6 +103,12 @@ export const authOptions = {
   //   },
   // },
   callbacks: {
+    async signOut(message) {
+      console.log("로그아웃 시 처리할 로직");
+      // 예를 들어, 세션 종료 후 백엔드에 로그아웃 요청을 보낼 수 있음
+      await client.del("profile_img");
+      return true;  // 기본 동작을 유지하려면 true를 반환
+    },
     async session({ session, token }) {
       // 세션에 token에서 추가된 provider 및 사용자 데이터 설정
       console.log('Session Util Token : ' + token );

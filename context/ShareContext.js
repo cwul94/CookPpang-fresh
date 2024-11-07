@@ -96,7 +96,7 @@ export function MyProvider({ children }) {
 
   }, [pathname]);
 
-  useEffect(() => {
+  useEffect( () => {
     // 세션 로딩 중에는 리다이렉트하지 않음
     if (status === 'loading') return;
     if (status === 'unauthenticated') {
